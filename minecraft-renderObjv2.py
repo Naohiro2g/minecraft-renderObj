@@ -3,13 +3,21 @@
 # Version 2 - draws complete faces rather than wireframes and uses materials
 
 #import the minecraft.py module from the minecraft directory
-import minecraft.minecraft as minecraft
-#import minecraft block module
-import minecraft.block as block
+# import minecraft.minecraft as minecraft
+# #import minecraft block module
+# import minecraft.block as block
 #import time, so delays can be used
 import time
 #import datetime, to get the time!
 import datetime
+
+import sys
+
+from mcje.minecraft import Minecraft
+import param_MCJE as param
+from param_MCJE import PLAYER_ORIGIN as po
+
+from mcje.vec3 import Vec3
 
 # class to create 3d filled polygons
 class MinecraftDrawing:
@@ -18,12 +26,14 @@ class MinecraftDrawing:
 
     # draw point
     def drawPoint3d(self, x, y, z, blockType, blockData=None):
-        self.mc.setBlock(x,y,z,blockType,blockData)
-        #print "x = " + str(x) + ", y = " + str(y) + ", z = " + str(z)
+        # self.mc.setBlock(x,y,z,blockType,blockData)
+        self.mc.setBlock(x,y,z,blockType)
+        # time.sleep(0.001)
+        # print("x = " + str(x) + ", y = " + str(y) + ", z = " + str(z))
 
     # draws a face, when passed a collection of vertices which make up a polyhedron
     def drawFace(self, vertices, blockType, blockData=None):
-        
+
         # get the edges of the face
         edgesVertices = []
         # persist first vertex
@@ -36,7 +46,7 @@ class MinecraftDrawing:
                 # got 2 vertices, get the points for the edge
                 edgesVertices = edgesVertices + self.getLine(lastVertex.x, lastVertex.y, lastVertex.z, vertex.x, vertex.y, vertex.z)
                 #print "x = " + str(lastVertex.x) + ", y = " + str(lastVertex.y) + ", z = " + str(lastVertex.z) + " x2 = " + str(vertex.x) + ", y2 = " + str(vertex.y) + ", z2 = " + str(vertex.z)
-            # persist the last vertex found    
+            # persist the last vertex found
             lastVertex = vertex
         # get edge between the last and first vertices
         edgesVertices = edgesVertices + self.getLine(lastVertex.x, lastVertex.y, lastVertex.z, firstVertex.x, firstVertex.y, firstVertex.z)
@@ -58,7 +68,7 @@ class MinecraftDrawing:
                 #print "x = " + str(lastVertex.x) + ", y = " + str(lastVertex.y) + ", z = " + str(lastVertex.z) + " x2 = " + str(vertex.x) + ", y2 = " + str(vertex.y) + ", z2 = " + str(vertex.z)
             # persist the last vertex found
             lastVertex = vertex
-        
+
     # draw's all the points in a collection of vertices with a block
     def drawVertices(self, vertices, blockType, blockData=None):
         for vertex in vertices:
@@ -67,7 +77,7 @@ class MinecraftDrawing:
     # draw line
     def drawLine(self, x1, y1, z1, x2, y2, z2, blockType, blockData):
         self.drawVertices(self.getLine(x1, y1, z1, x2, y2, z2), blockType, blockData)
-    
+
     # returns points on a line
     def getLine(self, x1, y1, z1, x2, y2, z2):
 
@@ -87,11 +97,11 @@ class MinecraftDrawing:
 
         # if the 2 points are the same, return single vertice
         if (x1 == x2 and y1 == y2 and z1 == z2):
-            vertices.append(minecraft.Vec3(x1, y1, z1))
-                            
+            vertices.append(Vec3(x1, y1, z1))
+
         # else get all points in edge
         else:
-        
+
             dx = x2 - x1
             dy = y2 - y1
             dz = z2 - z1
@@ -114,7 +124,7 @@ class MinecraftDrawing:
                 zd = az - (ax >> 1)
                 loop = True
                 while(loop):
-                    vertices.append(minecraft.Vec3(x, y, z))
+                    vertices.append(Vec3(x, y, z))
                     if (x == x2):
                         loop = False
                     if (yd >= 0):
@@ -132,7 +142,7 @@ class MinecraftDrawing:
                 zd = az - (ay >> 1)
                 loop = True
                 while(loop):
-                    vertices.append(minecraft.Vec3(x, y, z))
+                    vertices.append(Vec3(x, y, z))
                     if (y == y2):
                         loop=False
                     if (xd >= 0):
@@ -150,7 +160,7 @@ class MinecraftDrawing:
                 yd = ay - (az >> 1)
                 loop = True
                 while(loop):
-                    vertices.append(minecraft.Vec3(x, y, z))
+                    vertices.append(Vec3(x, y, z))
                     if (z == z2):
                         loop=False
                     if (xd >= 0):
@@ -162,7 +172,7 @@ class MinecraftDrawing:
                     z += sz
                     xd += ax
                     yd += ay
-                    
+
         return vertices
 
 def load_obj(filename, defaultBlock, materials) :
@@ -196,24 +206,28 @@ def load_obj(filename, defaultBlock, materials) :
             #append the material currently in use to the face
             F.append(face)
             MF.append(currentMaterial)
-    
+
         elif line[0] == 'usemtl': # material
-            
+
             usemtl = line[1]
             if (usemtl in materials.keys()):
                 currentMaterial = materials[usemtl]
             else:
                 currentMaterial = defaultBlock
-                print "Warning: Couldn't find '" + str(usemtl) + "' in materials using default"
+                print("Warning: Couldn't find '" + str(usemtl) + "' in materials using default")
 
     return V, T, N, F, MF
 
 # strips the x,y,z co-ords from a vertex line, scales appropriately, rounds and converts to int
 def getVertexXYZ(vertexLine, scale, startCoord, swapYZ):
     # convert, round and scale
-    x = int((float(vertexLine[0]) * scale) + 0.5)
-    y = int((float(vertexLine[1]) * scale) + 0.5)
-    z = int((float(vertexLine[2]) * scale) + 0.5)
+    if len(vertexLine) == 3:
+        i = 0
+    else:
+        i = 1
+    x = int((float(vertexLine[i]) * scale) + 0.5)
+    y = int((float(vertexLine[i + 1]) * scale) + 0.5)
+    z = int((float(vertexLine[i + 2]) * scale) + 0.5)
     # add startCoord to x,y,z
     x = x + startCoord.x
     y = y + startCoord.y
@@ -228,15 +242,24 @@ def getVertexXYZ(vertexLine, scale, startCoord, swapYZ):
 # main program
 if __name__ == "__main__":
 
-    print datetime.datetime.now()
+    print(datetime.datetime.now())
 
     #Connect to minecraft by creating the minecraft object
     # - minecraft needs to be running and in a game
-    mc = minecraft.Minecraft.create()
+    # mc = minecraft.Minecraft.create()
+
+    # Connect to minecraft and open a session as player with origin location
+    mc = Minecraft.create(address=param.ADRS_MCR, port=param.PORT_MCR)
+    result = mc.setPlayer(param.PLAYER_NAME, po.x, po.y, po.z)
+    if ("Error" in result):
+        sys.exit(result)
+    else:
+        print(result)
+
 
     #Create minecraft drawing class
     mcDrawing = MinecraftDrawing(mc)
-    
+
     #Load objfile and set constants
 
     # COORDSSCALE = factor to scale the co-ords by
@@ -246,182 +269,229 @@ if __name__ == "__main__":
     # MATERIALS = a dictionary object which maps materials in the obj file to blocks in minecraft
     # DEFAULTBLOCK = the default type of block to build the model in, used if a material cant be found
 
-    # Cube
-    #COORDSSCALE = 10
-    #STARTCOORD = minecraft.Vec3(0,10,0)
-    #CLEARAREA1 = minecraft.Vec3(-10, 0, -10)
-    #CLEARAREA2 = minecraft.Vec3(10, 20, 10)
-    #DEFAULTBLOCK = [block.STONE, None]
-    #MATERIALS = {}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces,materials = load_obj("cube.obj", DEFAULTBLOCK, MATERIALS)
-
     # Shuttle
-    #COORDSSCALE = 6
-    #STARTCOORD = minecraft.Vec3(-60,0,20)
-    #CLEARAREA1 = minecraft.Vec3(-30, 5, -30)
-    #CLEARAREA2 = minecraft.Vec3(-90, 50, 30)
-    #DEFAULTBLOCK = [block.WOOL.id,0]
-    #MATERIALS = {"glass": [block.GLASS.id, None],
-    #             "bone": [block.WOOL.id, 0],
-    #             "fldkdkgrey": [block.WOOL.id, 7],
-    #             "redbrick": [block.WOOL.id, 14],
-    #             "black": [block.WOOL.id, 15],
-    #             "brass": [block.WOOL.id, 1],
-    #             "dkdkgrey": [block.WOOL.id, 7]}
-    #SWAPYZ = True
-    #vertices,textures,normals,faces,materials = load_obj("shuttle.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 10
+    # STARTCOORD = Vec3(0, 0, param.Y_SEA + 90)
+    # CLEARAREA1 = Vec3(-70, -20, param.Y_SEA + 90)
+    # CLEARAREA2 = Vec3(70,   20, param.Y_SEA + 120)
+    # DEFAULTBLOCK = [param.SEA_LANTERN_BLOCK,0]
+    # MATERIALS = {"glass": [param.GLASS, None],
+    #             "bone": [param.WHITE_WOOL, 0],
+    #             "fldkdkgrey": [param.GRAY_WOOL, 7],
+    #             "redbrick": [param.RED_WOOL, 14],
+    #             "black": [param.BLACK_WOOL, 15],
+    #             "brass": [param.ORANGE_WOOL, 1],
+    #             "dkdkgrey": [param.GRAY_WOOL, 7]}
+    # SWAPYZ = True
+    # vertices,textures,normals,faces,materials = load_obj("shuttle.obj", DEFAULTBLOCK, MATERIALS)
 
     # Shyscraper
-    #COORDSSCALE = 1.4
-    #STARTCOORD = minecraft.Vec3(0,10,15)
-    #CLEARAREA1 = minecraft.Vec3(-30, -3, -15)
-    #CLEARAREA2 = minecraft.Vec3(30, 65, 35)
-    #DEFAULTBLOCK = [block.IRON_BLOCK, None]
-    #MATERIALS = {}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces,materials = load_obj("skyscraper.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 1.4
+    # STARTCOORD = Vec3(0,10 + param.Y_SEA,15)
+    # CLEARAREA1 = Vec3(-30, -3 + param.Y_SEA, -15)
+    # CLEARAREA2 = Vec3(30, 65 + param.Y_SEA, 35)
+    # DEFAULTBLOCK = [param.IRON_BLOCK, None]
+    # # MATERIALS = {}
+    # MATERIALS = {"glass": [param.GLASS, None],
+    #             "bone": [param.WHITE_WOOL, 0],
+    #             "bluteal": [param.GREEN_WOOL, 7],
+    #             "blutan": [param.GRAY_WOOL, 7],
+    #             "tan": [param.YELLOW_WOOL, 14],
+    #             "black": [param.BLACK_WOOL, 15],
+    #             "brass": [param.GOLD_BLOCK, 1],
+    #             "ltbrown": [param.ORANGE_WOOL, 1],
+    #             "brown": [param.BROWN_WOOL, 7]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces,materials = load_obj("skyscraper.obj", DEFAULTBLOCK, MATERIALS)
 
     # Head
-    #COORDSSCALE = 3
-    #STARTCOORD = minecraft.Vec3(0,-431,-60)
-    #CLEARAREA1 = minecraft.Vec3(-30, -30, -30)
-    #CLEARAREA2 = minecraft.Vec3(30, 65, -110)
-    #DEFAULTBLOCK = [block.GOLD_BLOCK, None]
-    #MATERIALS = {}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces,materials = load_obj("head.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 4
+    # STARTCOORD = Vec3(0,-431 + param.Y_SEA - 100, 0)
+    # CLEARAREA1 = Vec3(-20, -500 + param.Y_SEA, -20)
+    # CLEARAREA2 = Vec3(20, -531 + param.Y_SEA, 20)
+
+    # COORDSSCALE = 5
+    # STARTCOORD = Vec3(0,-690 + param.Y_SEA, 0)
+    # CLEARAREA1 = Vec3(-30, -690 + param.Y_SEA, -30)
+    # CLEARAREA2 = Vec3(30, -600 + param.Y_SEA, 30)
+
+    # DEFAULTBLOCK = [param.WHITE_WOOL, None]
+    # # MATERIALS = {"initialShadingGroup": [param.SEA_LANTERN_BLOCK, 0]}
+    # MATERIALS = {"initialShadingGroup": [param.GLOWSTONE, 0]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces,materials = load_obj("head.obj", DEFAULTBLOCK, MATERIALS)
 
     # Cessna
-    #COORDSSCALE = 2
-    #STARTCOORD = minecraft.Vec3(-75, 25, -60)
-    #CLEARAREA1 = minecraft.Vec3(-30, 15, -30)
-    #CLEARAREA2 = minecraft.Vec3(-100, 65, -90)
-    #DEFAULTBLOCK = [block.WOOD_PLANKS, None]
-    #MATERIALS = {}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces,materials = load_obj("cessna.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 2
+    # STARTCOORD = Vec3(-75, 25 + param.Y_SEA + 50, -60)
+    # CLEARAREA1 = Vec3(-30, 15 + param.Y_SEA + 50, -30)
+    # CLEARAREA2 = Vec3(-100, 65 + param.Y_SEA + 50, -90)
+    # DEFAULTBLOCK = [param.SEA_LANTERN_BLOCK, None]
+    # # MATERIALS = {}
+    # MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+    #             "red": [param.RED_WOOL, 0],
+    #             "black": [param.BLACK_WOOL, 0],
+    #             "yellow": [param.YELLOW_WOOL, 0],
+    #             "white": [param.WHITE_WOOL, 0],
+    #             "dkgrey": [param.GRAY_WOOL, 8],
+    #             "glass": [param.GLASS, 5]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces,materials = load_obj("cessna.obj", DEFAULTBLOCK, MATERIALS)
 
     # New York
-    #COORDSSCALE = 0.1
-    #STARTCOORD = minecraft.Vec3(-185, 0, 140)
-    #CLEARAREA1 = minecraft.Vec3(-130, 0, -130)
-    #CLEARAREA2 = minecraft.Vec3(130, 65, 130)
-    #DEFAULTBLOCK = [block.IRON_BLOCK, None]
-    #MATERIALS = {"Default_Material": [block.WOOL.id, 0],
-    #             "Color_A01": [block.WOOL.id, 14],
-    #             "0131_Silver": [block.IRON_BLOCK, None],
-    #             "0075_ForestGreen": [block.WOOL.id, 13],
-    #             "0137_Black": [block.WOOL.id, 15],
-    #             "Black": [block.WOOL.id, 15],
-    #             "Medium_Brown": [block.WOOL.id, 12],
-    #             "0056_Yellow": [block.WOOL.id, 4],
-    #             "0020_Red": [block.WOOL.id, 14],
-    #             "0102_RoyalBlue": [block.WOOL.id, 11],
-    #             "Color_E01": [block.WOOL.id, 4],
-    #             "Color_E02": [block.WOOL.id, 4],
-    #             "Color_B01": [block.WOOL.id, 1],
-    #             "Charcoal": [block.WOOL.id, 7],
-    #             "Material2": [block.WOOL.id, 0],
-    #             "Beige2": [block.SANDSTONE, None],
-    #             "DarkGoldenrod": [block.GOLD_BLOCK, None],
-    #             "Beige1": [block.SANDSTONE, None],
-    #             "jean_blue": [block.WOOL.id, 3],
-    #             "Gold1": [block.GOLD_BLOCK, None],
-    #             "WhiteSmoke": [block.WOOL.id, 8],
-    #             "0118_Thistle": [block.WOOL.id, 6],
-    #             "Color_D23": [block.WOOL.id, 7],
-    #             "Color_B23": [block.WOOL.id, 12],
-    #             "Color_009": [block.WOOL.id, 15],
-    #             "Color_D01": [block.WOOL.id, 1],
-    #             "Color_A06": [block.WOOL.id, 14],
-    #             "Color_D03": [block.WOOL.id, 4],
-    #             "0063_GreenYellow": [block.WOOL.id, 5]}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces,materials = load_obj("NY_LIL.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 0.1
+    # STARTCOORD = Vec3(-185, 0 + param.Y_SEA, 140)
+    # CLEARAREA1 = Vec3(-130, 0 + param.Y_SEA, -130)
+    # CLEARAREA2 = Vec3(130, 0 + param.Y_SEA, 130)
+    # DEFAULTBLOCK = [param.IRON_BLOCK, None]
+    # MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+    #             "Color_A01": [param.RED_WOOL, 0],
+    #             "0131_Silver": [param.IRON_BLOCK, None],
+    #             "0075_ForestGreen": [param.GREEN_WOOL, 0],
+    #             "0137_Black": [param.BLACK_WOOL, 0],
+    #             "Black": [param.BLACK_WOOL, 0],
+    #             "Medium_Brown": [param.BROWN_WOOL, 0],
+    #             "0056_Yellow": [param.YELLOW_WOOL, 0],
+    #             "0020_Red": [param.RED_WOOL, 0],
+    #             "0102_RoyalBlue": [param.BLUE_WOOL, 0],
+    #             "Color_E01": [param.YELLOW_WOOL, 0],
+    #             "Color_E02": [param.YELLOW_WOOL, 4],
+    #             "Color_B01": [param.ORANGE_WOOL, 1],
+    #             "Charcoal": [param.GRAY_WOOL, 7],
+    #             "Material2": [param.WHITE_WOOL, 0],
+    #             "Beige2": ["sandstone", None],
+    #             "DarkGoldenrod": [param.GOLD_BLOCK, None],
+    #             "Beige1": ["sandstone", None],
+    #             "jean_blue": [param.LIGHT_BLUE_WOOL, 3],
+    #             "Gold1": [param.GOLD_BLOCK, None],
+    #             "WhiteSmoke": [param.LIGHT_GRAY_WOOL, 8],
+    #             "0118_Thistle": [param.PINK_WOOL, 6],
+    #             "Color_D23": [param.GRAY_WOOL, 7],
+    #             "Color_B23": [param.BROWN_WOOL, 12],
+    #             "Color_009": [param.BLACK_WOOL, 15],
+    #             "Color_D01": [param.ORANGE_WOOL, 1],
+    #             "Color_A06": [param.RED_WOOL, 14],
+    #             "Color_D03": [param.YELLOW_WOOL, 4],
+    #             "0063_GreenYellow": [param.LIME_WOOL, 5]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces,materials = load_obj("NY_LIL.obj", DEFAULTBLOCK, MATERIALS)
 
     # Nottingham Forest City Ground
-    #COORDSSCALE = 0.35
-    #STARTCOORD = minecraft.Vec3(0, -1, 0)
-    #CLEARAREA1 = minecraft.Vec3(-50, -1, -50)
-    #CLEARAREA2 = minecraft.Vec3(50, 20, 50)
-    #DEFAULTBLOCK = [block.DIRT,None]
-    #MATERIALS = {"Default_Material": [block.STONE.id,None],
-    #             "Black": [block.WOOL.id,15],
-    #             "Asphalt_Old": [block.WOOL.id,7],
-    #             "GhostWhite": [block.WOOL.id,0],
-    #             "Brick_Flemish_Bond": [block.BRICK_BLOCK,None],
-    #             "Concrete_Brushed": [block.STONE,None],
-    #             "Metal_Brushed": [block.IRON_BLOCK,None],
-    #             "Roofing_Metal_Standing_Seam_Blue": [block.WOOL.id,8],
-    #             "White": [block.WOOL.id,0],
-    #             "Metal_Brushed1": [block.IRON_BLOCK,None],
-    #             "Rouge3141": [block.WOOL.id,14],
-    #             "roof": [block.WOOL.id,8],
-    #             "Metal_Aluminum_Anodized": [block.IRON_BLOCK,None],
-    #             "Translucent_Glass_Safety": [block.GLASS, None],
-    #             "Translucent_Glass_Safety1": [block.GLASS, None],
-    #             "Safety_Glass2": [block.GLASS, None],
-    #             "Red": [block.WOOL.id,14],
-    #             "goal_net1": [block.WOOL.id,0],
-    #             "Black": [block.WOOL.id,15]}
-    #SWAPYZ = False
-    #vertices,textures,normals,faces, materials = load_obj("City_Ground-Notts.obj", DEFAULTBLOCK, MATERIALS)
+    # COORDSSCALE = 2
+    # STARTCOORD = Vec3(0, -1 + param.Y_SEA + 1, 0)
+    # CLEARAREA1 = Vec3(-50, -1 + param.Y_SEA + 1, -50)
+    # CLEARAREA2 = Vec3(50, 20 + param.Y_SEA + 1, 50)
+    # DEFAULTBLOCK = ['dirt',None]
+    # # MATERIALS = {"Default_Material": [param.SEA_LANTERN_BLOCK, 0]}
+    # MATERIALS = {"Default_Material": [param.BLACK_WOOL,None],
+    #             "Black": [param.BLACK_WOOL,15],
+    #             "Asphalt_Old": [param.GRAY_WOOL,7],
+    #             "GhostWhite": [param.WHITE_WOOL,0],
+    #             "Brick_Flemish_Bond": ['bricks',None],
+    #             "Concrete_Brushed": [param.STONE,None],
+    #             "Metal_Brushed": [param.IRON_BLOCK,None],
+    #             "Roofing_Metal_Standing_Seam_Blue": [param.LIGHT_GRAY_WOOL,8],
+    #             "White": [param.WHITE_WOOL,0],
+    #             "Metal_Brushed1": [param.IRON_BLOCK,None],
+    #             "Rouge3141": [param.LIGHT_GRAY_WOOL,14],
+    #             "roof": [param.LIGHT_GRAY_WOOL,8],
+    #             "Metal_Aluminum_Anodized": [param.IRON_BLOCK,None],
+    #             "Translucent_Glass_Safety": [param.GLASS, None],
+    #             "Translucent_Glass_Safety1": [param.GLASS, None],
+    #             "Safety_Glass2": [param.GLASS, None],
+    #             "Red": [param.RED_WOOL,14],
+    #             "goal_net1": [param.WHITE_WOOL,0],
+    #             "Black": [param.BLACK_WOOL,15]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces, materials = load_obj("City_Ground-Notts.obj", DEFAULTBLOCK, MATERIALS)
 
     # Raspbery Pi
-    COORDSSCALE = 1350
-    STARTCOORD = minecraft.Vec3(-50, 0, 0)
-    CLEARAREA1 = minecraft.Vec3(-100, 0, -100)
-    CLEARAREA2 = minecraft.Vec3(100, 20, 10)
-    DEFAULTBLOCK = [block.DIRT,None]
-    MATERIALS = {"Default_Material": [block.WOOL.id, 0],
-                 "Material1": [block.WOOL.id, 5],
-                 "Goldenrod": [block.WOOL.id, 1],
-                 "0136_Charcoal": [block.WOOL.id, 7],
-                 "Gray61": [block.WOOL.id, 7],
-                 "Charcoal": [block.WOOL.id, 7],
-                 "Color_002": [block.WOOL.id, 8],
-                 "Color_008": [block.WOOL.id, 4],
-                 "Plastic_Green": [block.WOOL.id, 5],
-                 "MB_Pastic_White": [block.WOOL.id, 0],
-                 "IO_Shiny": [block.IRON_BLOCK, None],
-                 "Material4": [block.GRASS, None],
-                 "Gainsboro3": [block.WOOL.id, 5],
-                 "CorrogateShiny1": [block.IRON_BLOCK, None],
-                 "Gold": [block.GOLD_BLOCK, None],
-                 "0129_WhiteSmoke": [block.WOOL.id, 0],
-                 "Color_005": [block.WOOL.id, 0],
-                 "USB_IO": [block.WOOL.id, 11],
-                 "_Metal": [block.IRON_BLOCK, None],
-                 "0132_LightGray": [block.WOOL.id, 8]}
+    # COORDSSCALE = 2000
+    # STARTCOORD = Vec3(0, param.Y_SEA + 0, 0)
+    # CLEARAREA1 = Vec3(-50, param.Y_SEA + 0, -150)
+    # CLEARAREA2 = Vec3(220, param.Y_SEA + 40, 50)
+    # DEFAULTBLOCK = [param.GRASS_BLOCK,None]
+    # MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+    #              "Material1": [param.LIME_WOOL, 0],
+    #              "Goldenrod": [param.YELLOW_WOOL, 0],
+    #              "0136_Charcoal": [param.GRAY_WOOL, 0],
+    #              "Gray61": [param.GRAY_WOOL, 0],
+    #              "Charcoal": [param.GRAY_WOOL, 0],
+    #              "Color_002": [param.LIGHT_GRAY_WOOL, 0],
+    #              "Color_008": [param.YELLOW_WOOL, 0],
+    #              "Plastic_Green": [param.LIME_WOOL, 0],
+    #              "MB_Pastic_White": [param.WHITE_WOOL, 0],
+    #              "IO_Shiny": [param.IRON_BLOCK, 0],
+    #              "Material4": [param.GRASS_BLOCK, 0],
+    #              "Gainsboro3": [param.LIME_WOOL, 0],
+    #              "CorrogateShiny1": [param.IRON_BLOCK, 0],
+    #              "Gold": [param.GOLD_BLOCK, 0],
+    #              "0129_WhiteSmoke": [param.WHITE_WOOL, 0],
+    #              "Color_005": [param.WHITE_WOOL, 0],
+    #              "USB_IO": [param.BLUE_WOOL, 0],
+    #              "_Metal": [param.IRON_BLOCK, 0],
+    #              "0132_LightGray": [param.LIGHT_GRAY_WOOL, 0]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces, materials = load_obj("RaspberryPi.obj", DEFAULTBLOCK, MATERIALS)
+
+
+    # Football
+    # COORDSSCALE = 1.5
+    # STARTCOORD = Vec3(0, 25 + param.Y_SEA, 0)
+    # CLEARAREA1 = Vec3(-30, 25 + param.Y_SEA, -30)
+    # CLEARAREA2 = Vec3(30, 65 + param.Y_SEA, 30)
+    # DEFAULTBLOCK = [param.SEA_LANTERN_BLOCK, None]
+    # # MATERIALS = {}
+    # # MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+    # #             "01___Default": [param.BLACK_WOOL, 0],
+    # #             "02___Default": [param.WHITE_WOOL, 0],
+    # #             "glass": [param.GLASS, 5]}
+    # MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+    #             "01___Default": [param.GOLD_BLOCK, 0],
+    #             "02___Default": [param.SEA_LANTERN_BLOCK, 0],
+    #             "glass": [param.GLASS, 5]}
+    # SWAPYZ = False
+    # vertices,textures,normals,faces,materials = load_obj("Football.obj", DEFAULTBLOCK, MATERIALS)
+
+    # traffic_cone
+    COORDSSCALE = 30
+    STARTCOORD = Vec3(0, 1 + param.Y_SEA, 0)
+    CLEARAREA1 = Vec3(-60, 1 + param.Y_SEA, -60)
+    CLEARAREA2 = Vec3(60, 100 + param.Y_SEA, 60)
+    DEFAULTBLOCK = [param.SEA_LANTERN_BLOCK, None]
+    MATERIALS = {"Default_Material": [param.WHITE_WOOL, 0],
+                "orange": [param.ORANGE_WOOL, 0],
+                "white": [param.WHITE_WOOL, 5]}
     SWAPYZ = False
-    vertices,textures,normals,faces, materials = load_obj("RaspberryPi.obj", DEFAULTBLOCK, MATERIALS)
+    vertices,textures,normals,faces,materials = load_obj("traffic_cone.obj", DEFAULTBLOCK, MATERIALS)
 
-    print "obj file loaded"
 
-    #Post a message to the minecraft chat window 
+
+    print("obj file loaded")
+
+    #Post a message to the minecraft chat window
     mc.postToChat("Hi, Minecraft 3d model maker, www.stuffaboutcode.com")
-    
+
     # clear a suitably large area
-    mc.setBlocks(CLEARAREA1.x, CLEARAREA1.y, CLEARAREA1.z, CLEARAREA2.x, CLEARAREA2.y, CLEARAREA2.z, block.AIR)
+    mc.setBlocks(CLEARAREA1.x, CLEARAREA1.y, CLEARAREA1.z, CLEARAREA2.x, CLEARAREA2.y, CLEARAREA2.z, param.AIR)
     time.sleep(10)
 
     faceCount = 0
     # loop through faces
     for face in faces:
         faceVertices = []
-        
+
         # loop through vertex's in face and call drawFace function
         for vertex in face:
             #strip co-ords from vertex line
             vertexX, vertexY, vertexZ = getVertexXYZ(vertices[vertex[0]], COORDSSCALE, STARTCOORD, SWAPYZ)
 
-            faceVertices.append(minecraft.Vec3(vertexX,vertexY,vertexZ))
-                   
+            faceVertices.append(Vec3(vertexX,vertexY,vertexZ))
+
         # draw the face
         mcDrawing.drawFace(faceVertices, materials[faceCount][0], materials[faceCount][1])
         faceCount = faceCount + 1
 
     mc.postToChat("Model complete, www.stuffaboutcode.com")
 
-    print datetime.datetime.now()
+    print(datetime.datetime.now())
