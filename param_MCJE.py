@@ -10,7 +10,7 @@ PLAYER_ORIGIN = Vec3(670, 20, 650)  # po.x, po.y, po.z
 print(f"param_MCJE loaded for {PLAYER_NAME} at {PLAYER_ORIGIN.x}, {PLAYER_ORIGIN.y}, {PLAYER_ORIGIN.z}")
 
 # minecraft remote connection to the host at address:port
-ADRS_MCR = "legion.local"
+ADRS_MCR = "localhost"
 # ADRS_MCR = "code2createclub.mydns.jp"
 # ADRS_MCR = "sharuta.xgames.jp"  # XServer GAMEs
 
