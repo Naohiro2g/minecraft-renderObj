@@ -289,8 +289,8 @@ def render_object(mc, object_name, scale_ratio):
 # main program
 if __name__ == "__main__":
     # OBJECT_NAME = "traffic_cone"
-    OBJECT_NAME = "Football"
-    SCALE_RATIO = 1.0
+    OBJECT_NAME = "shuttle2"
+    SCALE_RATIO = 0.8
 
     # Connect to minecraft and open a session as player with origin location
     mc = Minecraft.create(address=param.ADRS_MCR, port=param.PORT_MCR)
