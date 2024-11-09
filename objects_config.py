@@ -147,7 +147,7 @@ OBJECTS_CONFIG = {
         "SWAPYZ": False,
         "OBJ_FILE": "RaspberryPi.obj"
     },
-    "rocket": {
+    "shuttle2": {
         "COORDSSCALE": 2,
         "STARTCOORD": Vec3(0, 63 + param.Y_SEA, 0),
         "CLEARAREA1": Vec3(-60, 63 + param.Y_SEA, -60),
@@ -166,7 +166,7 @@ OBJECTS_CONFIG = {
             "orange": [param.ORANGE_WOOL, 0]
         },
         "SWAPYZ": False,
-        "OBJ_FILE": "rocket.obj"
+        "OBJ_FILE": "shuttle2.obj"
     },
     "shuttle": {
         "COORDSSCALE": 10,
