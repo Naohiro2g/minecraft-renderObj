@@ -233,5 +233,35 @@ OBJECTS_CONFIG = {
         },
         "SWAPYZ": False,
         "OBJ_FILE": "USS_Enterprise_NCC-1701_7.obj"
-    }
+    },
+    "pokeball": {
+        "COORDSSCALE": 8,
+        "STARTCOORD": Vec3(0, 10 + param.Y_SEA, 0),
+        "CLEARAREA1": Vec3(-80, 10 + param.Y_SEA, -80),
+        "CLEARAREA2": Vec3(80, 200 + param.Y_SEA, 80),
+        "DEFAULTBLOCK": [param.SEA_LANTERN_BLOCK, None],
+        "MATERIALS": {
+            "Default_Material": [param.WHITE_WOOL, 5],
+            "red": [param.RED_WOOL, 14],
+            "black": [param.BLACK_WOOL, 0],
+            "white": [param.WHITE_WOOL, 5]
+        },
+        "SWAPYZ": False,
+        "OBJ_FILE": "pokeball.obj"
+    },
+    "mimikyu": {
+        "COORDSSCALE": 60,
+        "STARTCOORD": Vec3(0, 60 + param.Y_SEA, 0),
+        "CLEARAREA1": Vec3(-60, 60 + param.Y_SEA, -60),
+        "CLEARAREA2": Vec3(60, 60 + param.Y_SEA, 60),
+        "DEFAULTBLOCK": [param.SEA_LANTERN_BLOCK, None],
+        "MATERIALS": {
+            "Default_Material": [param.WHITE_WOOL, 0],
+            "grey": [param.GRAY_WOOL, 7],
+            "black": [param.BLACK_WOOL, 15],
+            "yellow": [param.YELLOW_WOOL, 4]
+        },
+        "SWAPYZ": False,
+        "OBJ_FILE": "mimikyu.obj"
+    },
 }
